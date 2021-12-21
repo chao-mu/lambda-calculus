@@ -17,9 +17,9 @@ def test_reduce():
 
     # λx.λy.x
     true = Abstraction(x, Abstraction(y, x))
-    # (((λx.λy.x) 1) 2)
-    # ((λy.1) 2)
-    # 1
+    # (((λx.λy.x) a) b)
+    # ((λy.a) b)
+    # a
     assert Application(Application(true, a), b).reduce() == a
     assert Application(Application(true, b), a).reduce() == b
 

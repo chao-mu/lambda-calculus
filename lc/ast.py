@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 
-
 # TODO alpha conversion and eta reduction
 
 class Term:
@@ -55,10 +54,7 @@ def to_str(term: Term, _prepend: str="") -> str:
 
     if isinstance(term, Abstraction):
         body = to_str(term.body)
-        if " " in body:
-            body = f"({body})"
-
-        return f"λ{term.variable.value}.{body}"
+        return f"(λ{term.variable.value}.{body})"
 
     if isinstance(term, Application):
         left = to_str(term.left)
