@@ -12,6 +12,7 @@ def test_reduce():
     identity = Abstraction(x, x)
     assert identity.reduce() == identity
     assert Application(identity, x).reduce() == x
+    assert Application(identity, y).reduce() == y
     assert Application(identity, identity).reduce() == identity
 
     # λx.λy.x
@@ -22,7 +23,13 @@ def test_reduce():
     assert Application(Application(true, a), b).reduce() == a
     assert Application(Application(true, b), a).reduce() == b
 
-    false = Abstraction(x, Abstraction(y, y))
     # λx.λy.y
+    false = Abstraction(x, Abstraction(y, y))
     assert Application(Application(false, a), b).reduce() == b
     assert Application(Application(false, b), a).reduce() == a
+
+    # ((λx. x x) (λx. x x))
+    omega_side = Abstraction(x, Application(x, x))
+    omega = Application(omega_side, omega_side)
+    assert omega.reduce() == omega
+    assert omega.reduce().reduce().reduce() == omega

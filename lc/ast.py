@@ -3,13 +3,15 @@ from dataclasses import dataclass
 
 # TODO alpha conversion and eta reduction
 
-class Term: pass
+class Term:
+    def reduce(self, bindings=None):
+        return self
 
 @dataclass
 class Variable(Term):
     value: str
 
-    def reduce(self, bindings=None):
+    def substitute(self, bindings=None):
         if bindings is not None and self.value in bindings:
             return bindings[self.value]
 
@@ -20,31 +22,30 @@ class Abstraction(Term):
     variable: Variable
     body: Term
 
-    def reduce(self, bindings=None):
-        return Abstraction(self.variable, self.body.reduce(bindings))
+    def substitute(self, bindings=None):
+        return Abstraction(self.variable, self.body.substitute(bindings))
 
 @dataclass
 class Application(Term):
     left: Term
     right: Term
 
+    def substitute(self, bindings=None):
+        return Application(
+                self.left.substitute(bindings), self.right.substitute(bindings))
+
     def reduce(self, bindings=None):
         if bindings is None:
             bindings = {}
 
-        left = self.left
-        if isinstance(self.left, Application):
-            left = self.left.reduce(bindings)
-
-        right = self.right
-        if isinstance(self.right, Application):
-            right = self.right.reduce(bindings)
+        left = self.left.reduce()
+        right = self.right.reduce()
 
         if isinstance(left, Abstraction):
             var = left.variable.value
             bindings[var] = right
 
-            return left.body.reduce(bindings)
+            return left.body.substitute(bindings)
 
         return Application(left, right)
 
@@ -54,6 +55,9 @@ def to_str(term: Term, _prepend: str="") -> str:
 
     if isinstance(term, Abstraction):
         body = to_str(term.body)
+        if " " in body:
+            body = f"({body})"
+
         return f"λ{term.variable.value}.{body}"
 
     if isinstance(term, Application):

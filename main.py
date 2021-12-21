@@ -2,6 +2,7 @@
 
 # Internal
 from lc.parser import parse, ParserError
+from lc.interpreter import reduce
 from lc.ast import to_str
 
 # Core
@@ -9,26 +10,31 @@ import readline
 
 def main():
     try:
-        repl()
+        repl(True)
     except (EOFError, KeyboardInterrupt):
         print("\nExiting meow!")
 
-def repl() -> None:
+def repl(debug: bool) -> None:
     while True:
         user_input = input("🐱 ")
         if not user_input:
             continue
+
         try:
             parsed = parse(user_input)
         except ParserError as e:
             print(e)
+            continue
 
-        print("🐁 " + str(parsed))
         print("🐁 " + to_str(parsed))
-        reduced = parsed.reduce()
-        if reduced != parsed:
-            print("🐟 " + str(reduced))
+
+        if debug:
+            print("🐁 " + str(parsed))
+
+        for reduced in reduce(parsed):
             print("🐟 " + to_str(reduced))
+            if debug:
+                print("🐟 " + str(reduced))
 
 if __name__ == "__main__":
     main()
