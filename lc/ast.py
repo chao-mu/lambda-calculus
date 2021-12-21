@@ -21,7 +21,7 @@ class Abstraction(Term):
     body: Term
 
     def reduce(self, bindings=None):
-        return self.body.reduce(bindings)
+        return Abstraction(self.variable, self.body.reduce(bindings))
 
 @dataclass
 class Application(Term):
@@ -40,11 +40,11 @@ class Application(Term):
         if isinstance(self.right, Application):
             right = self.right.reduce(bindings)
 
-        if isinstance(self.left, Abstraction):
-            var = self.left.variable.value
-            bindings[var] = self.right
+        if isinstance(left, Abstraction):
+            var = left.variable.value
+            bindings[var] = right
 
-            return self.left.body.reduce(bindings)
+            return left.body.reduce(bindings)
 
         return Application(left, right)
 
@@ -54,7 +54,7 @@ def to_str(term: Term, _prepend: str="") -> str:
 
     if isinstance(term, Abstraction):
         body = to_str(term.body)
-        return f"λ{term.variable}.{body}"
+        return f"λ{term.variable.value}.{body}"
 
     if isinstance(term, Application):
         left = to_str(term.left)

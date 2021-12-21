@@ -18,12 +18,17 @@ def repl() -> None:
         user_input = input("🐱 ")
         if not user_input:
             continue
-
         try:
-            print("🐁 " + to_str(parse(user_input)))
-            print("🐁 " + str(parse(user_input)))
+            parsed = parse(user_input)
         except ParserError as e:
             print(e)
+
+        print("🐁 " + str(parsed))
+        print("🐁 " + to_str(parsed))
+        reduced = parsed.reduce()
+        if reduced != parsed:
+            print("🐟 " + str(reduced))
+            print("🐟 " + to_str(reduced))
 
 if __name__ == "__main__":
     main()

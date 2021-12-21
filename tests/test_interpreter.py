@@ -4,19 +4,25 @@ from lc.parser import parse
 def test_reduce():
     x = Variable("x")
     y = Variable("y")
+    a = Variable("a")
+    b = Variable("b")
 
     assert x.reduce() == x
 
     identity = Abstraction(x, x)
+    assert identity.reduce() == identity
     assert Application(identity, x).reduce() == x
     assert Application(identity, identity).reduce() == identity
 
     # λx.λy.x
     true = Abstraction(x, Abstraction(y, x))
-    assert Application(Application(true, x), y).reduce() == x
-    assert Application(Application(true, y), x).reduce() == y
+    # (((λx.λy.x) 1) 2)
+    # ((λy.1) 2)
+    # 1
+    assert Application(Application(true, a), b).reduce() == a
+    assert Application(Application(true, b), a).reduce() == b
 
-    # λx.λy.y
     false = Abstraction(x, Abstraction(y, y))
-    assert Application(Application(false, x), y).reduce() == y
-    assert Application(Application(false, y), x).reduce() == x
+    # λx.λy.y
+    assert Application(Application(false, a), b).reduce() == b
+    assert Application(Application(false, b), a).reduce() == a
