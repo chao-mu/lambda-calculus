@@ -1,35 +1,9 @@
+# Core
 from collections import deque
 
-from dataclasses import dataclass
-
-from typing import Union
-
-from enum import Enum, auto
-
+# Internal
 from lc.tokenizer import TokenType, tokenize
-
-"""
-T -> V | AP | AB
-AB -> λ V . T
-AP -> (T T) | (T)T
-V -> [a-z]
-"""
-
-class Term: pass
-
-@dataclass
-class Variable(Term):
-    value: str
-
-@dataclass
-class Abstraction(Term):
-    variable: Variable
-    body: Term
-
-@dataclass
-class Application(Term):
-    left: Term
-    right: Term
+from lc.ast import Term, Variable, Abstraction, Application
 
 class Parser:
 
@@ -52,43 +26,39 @@ class Parser:
         return self._program()
 
     def _program(self):
-        left = self._term()
-        if self._look_ahead is None:
-            return left
+        return self._term()
 
-        return self._application(left)
-
-    def _application(self, left=None):
+    def _term(self):
         enclosed = self._next_type == TokenType.OPEN_PAREN
         if enclosed:
             self._eat(TokenType.OPEN_PAREN, "(")
 
-        if left is None:
-            left = self._term()
+        spec = {
+            TokenType.ID: self._variable,
+            TokenType.LAMBDA: self._abstraction,
+            TokenType.OPEN_PAREN: self._term,
+        }
 
-        right = self._term()
+        terms = deque([])
+        while self._next_type in spec:
+           terms.append(spec[self._next_type]())
 
-        app = Application(left, right)
-
-        if self._next_type != TokenType.CLOSE_PAREN and self._tokens:
-            app = self._application(app)
+        if not terms:
+            raise ParserError(f'Expecting term, but found "{self._look_ahead}',
+                    self._look_ahead)
 
         if enclosed:
             self._eat(TokenType.CLOSE_PAREN, ")")
 
+        if len(terms) == 1:
+            return terms[0]
+
+        # Form applications
+        app = Application(terms.popleft(), terms.popleft())
+        while terms:
+            app = Application(app, terms.popleft())
+
         return app
-
-    def _term(self):
-        spec = {
-            TokenType.ID: self._variable,
-            TokenType.LAMBDA: self._abstraction,
-            TokenType.OPEN_PAREN: self._application,
-        }
-
-        head = self._look_ahead
-        if head.tt not in spec:
-            raise ParserError(f'Was expecting a term, but found "{head.content}"', head)
-        return spec[head.tt]()
 
     def _abstraction(self):
         self._eat(TokenType.LAMBDA, "lambda")

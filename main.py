@@ -17,6 +17,7 @@ def repl() -> None:
         user_input = input("🐱 ")
         if not user_input:
             continue
+
         try:
             print("🐁 " + to_str(parse(user_input)))
             print("🐁 " + str(parse(user_input)))
