@@ -1,32 +1,31 @@
-from lc.tokenizer import *
+from lc.tokenizer import Token, TokenType, tokenize
 
 def test_tokenize():
     # Variable
-    assert tokenize("x") == [Variable("x", 1)]
-    assert tokenize("(") == [ParenOpen("(", 1)]
-    assert tokenize(")") == [ParenClose(")", 1)]
-    assert tokenize(" ") == [Space(" ", 1)]
-    assert tokenize("λ") == [Lambda("λ", 1)]
-    assert tokenize(".") == [Dot(".", 1)]
-    assert tokenize("|") == [Unknown("|", 1)]
+    assert tokenize("x") == [Token(TokenType.ID, "x", 1)]
+    assert tokenize("(") == [Token(TokenType.OPEN_PAREN, "(", 1)]
+    assert tokenize(")") == [Token(TokenType.CLOSE_PAREN, ")", 1)]
+    assert tokenize(" ") == []
+    assert tokenize("λ") == [Token(TokenType.LAMBDA, "λ", 1)]
+    assert tokenize(".") == [Token(TokenType.DOT, ".", 1)]
+    assert tokenize("|") == [Token(TokenType.UNKNOWN, "|", 1)]
 
     assert len(tokenize("(λx.M)")) > 1
 
     # Abstraction
     assert tokenize("(λx.M)") == [
-        ParenOpen("(", 1),
-        Lambda("λ", 2),
-        Variable("x", 3),
-        Dot(".", 4),
-        Variable("M", 5),
-        ParenClose(")", 6),
+        Token(TokenType.OPEN_PAREN, "(", 1),
+        Token(TokenType.LAMBDA, "λ", 2),
+        Token(TokenType.ID, "x", 3),
+        Token(TokenType.DOT, ".", 4),
+        Token(TokenType.ID, "M", 5),
+        Token(TokenType.CLOSE_PAREN, ")", 6),
     ]
 
     # Application
     assert tokenize("(M N)") == [
-        ParenOpen("(", 1),
-        Variable("M", 2),
-        Space(" ", 3),
-        Variable("N", 4),
-        ParenClose(")", 5),
+        Token(TokenType.OPEN_PAREN, "(", 1),
+        Token(TokenType.ID, "M", 2),
+        Token(TokenType.ID, "N", 4),
+        Token(TokenType.CLOSE_PAREN, ")", 5),
     ]
