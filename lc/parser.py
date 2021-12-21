@@ -103,19 +103,5 @@ class ParserError(Exception):
 
         return f'Syntax eror at file "{self.file_path}", line {self.line_at} (character {self.char_at}):\n{self.reason}'
 
-def to_str(node, prepend=""):
-    if isinstance(node, Variable):
-        return prepend + node.value
-
-    if isinstance(node, Abstraction):
-        left = to_str(node.variable, prepend="λ")
-        right = to_str(node.body)
-
-    if isinstance(node, Application):
-        left = to_str(node.left)
-        right = to_str(node.right)
-
-    return f"({left} {right})"
-
 def parse(s):
     return Parser(s).parse()

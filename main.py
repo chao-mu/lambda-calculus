@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 # Internal
-from lc.parser import parse, to_str, ParserError
+from lc.parser import parse, ParserError
+from lc.ast import to_str
 
 # Core
 import readline

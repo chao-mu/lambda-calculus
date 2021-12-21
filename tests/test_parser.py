@@ -1,6 +1,5 @@
-from lc.parser import parse, to_str, Abstraction, Variable, Application
-#from lc.tokenizer import tokenize, Variable, Lambda
-#import collections
+from lc.parser import parse
+from lc.ast import Abstraction, Variable, Application, Term
 
 def test_to_tree():
     assert parse("x") == Variable("x")
@@ -12,9 +11,21 @@ def test_to_tree():
 
     assert parse("(λx.xx) (λx.xx)")
 
+    # Assumes to_str is correct
     assert to_str(parse("M N S")) == "((M N) S)"
     assert to_str(parse("M (N S)")) == "(M (N S))"
     assert to_str(parse("(M N)")) == "(M N)"
-#    assert parse_tokens(dq_tok("x")) == Leaf(Variable("x", 1))
-#    assert parse_tokens(dq_tok("λx.y")) == \
-            #Branch(Branch(Leaf(Lambda("λ", 1)), Leaf(Variable("x", 2))), Leaf(Variable("y", 4)))
+
+def to_str(term: Term, _prepend: str="") -> str:
+    if isinstance(term, Variable):
+        return _prepend + term.value
+
+    if isinstance(term, Abstraction):
+        left = to_str(term.variable, _prepend="λ")
+        right = to_str(term.body)
+
+    if isinstance(term, Application):
+        left = to_str(term.left)
+        right = to_str(term.right)
+
+    return f"({left} {right})"
