@@ -16,6 +16,9 @@ def test_to_tree():
     assert to_str(parse("M (N S)")) == "(M (N S))"
     assert to_str(parse("(M N)")) == "(M N)"
 
+    assert to_str(parse("λx.y M")) == "(λx (y M))"
+    assert to_str(parse("(λx.y M) x")) == "((λx (y M)) x)"
+
 def to_str(term: Term, _prepend: str="") -> str:
     if isinstance(term, Variable):
         return _prepend + term.value

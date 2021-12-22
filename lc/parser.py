@@ -50,6 +50,9 @@ class Parser:
         if enclosed:
             self._eat(TokenType.CLOSE_PAREN, ")")
 
+        if self._next_type in spec:
+            terms.append(spec[self._next_type]())
+
         if len(terms) == 1:
             return terms[0]
 
