@@ -26,15 +26,22 @@ def repl(debug: bool) -> None:
             print(e)
             continue
 
-        print("🐁 " + to_str(parsed))
+        print_result(parsed, debug)
 
-        if debug:
-            print("🐁 " + str(parsed))
-
+        max_iter = 100
         for reduced in reduce(parsed):
-            print("🐟 " + to_str(reduced))
-            if debug:
-                print("🐟 " + str(reduced))
+            print_result(parsed, debug)
+            max_iter -= 1
+            if max_iter <= 0:
+                print("❗ Max number of reductions reached!")
+                break
+
+
+def print_result(result, debug):
+    print("🐁 " + to_str(result))
+
+    if debug:
+        print("🐁 " + str(result))
 
 if __name__ == "__main__":
     main()
