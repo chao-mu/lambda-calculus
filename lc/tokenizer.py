@@ -12,6 +12,7 @@ class TokenType(Enum):
     DOT = auto()
     LAMBDA = auto()
     UNKNOWN = auto()
+    ASSIGN = auto()
 
 TokenSpec = [
     (lambda s: s.isalpha(), TokenType.ID),
@@ -21,6 +22,7 @@ TokenSpec = [
     (lambda s: s == " ", None),
     (lambda s: s == ".", TokenType.DOT),
     (lambda s: s == "λ" , TokenType.LAMBDA),
+    (lambda s: s == ":=" , TokenType.ASSIGN),
 ]
 
 @dataclass
@@ -35,7 +37,8 @@ def tokenize(s, file_path=MEMORY_FILE_PATH):
     tokens = []
     line_at = 1
     char_at = 1
-    for raw_token in re.split(r"([^A-Za-z_])", s):
+
+    for raw_token in re.split(r"(:=|[^A-Za-z_])", s):
         if not raw_token:
             continue
 

@@ -1,14 +1,25 @@
 from dataclasses import dataclass
 
-# TODO alpha conversion and eta reduction
+class Syntax: pass
 
-class Term:
+class Term(Syntax):
     def reduce(self, bindings=None):
         return self
+
+    def substitute(self, bindings=None):
+        return self
+
+@dataclass
+class Assignment(Syntax):
+    name: str
+    term: Term
 
 @dataclass
 class Variable(Term):
     value: str
+
+    def reduce(self, bindings=None):
+        return self.substitute(bindings)
 
     def substitute(self, bindings=None):
         if bindings is not None and self.value in bindings:
@@ -37,8 +48,8 @@ class Application(Term):
         if bindings is None:
             bindings = {}
 
-        left = self.left.reduce()
-        right = self.right.reduce()
+        left = self.left.reduce(bindings)
+        right = self.right.reduce(bindings)
 
         if isinstance(left, Abstraction):
             var = left.variable.value
@@ -48,15 +59,19 @@ class Application(Term):
 
         return Application(left, right)
 
-def to_str(term: Term, _prepend: str="") -> str:
-    if isinstance(term, Variable):
-        return term.value
+def to_str(syntax: Syntax, _prepend: str="") -> str:
+    if isinstance(syntax, Variable):
+        return syntax.value
 
-    if isinstance(term, Abstraction):
-        body = to_str(term.body)
-        return f"(λ{term.variable.value}.{body})"
+    if isinstance(syntax, Abstraction):
+        body = to_str(syntax.body)
+        return f"(λ{syntax.variable.value}.{body})"
 
-    if isinstance(term, Application):
-        left = to_str(term.left)
-        right = to_str(term.right)
+    if isinstance(syntax, Application):
+        left = to_str(syntax.left)
+        right = to_str(syntax.right)
         return f"({left} {right})"
+
+    if isinstance(syntax, Assignment):
+        term = to_str(syntax.term)
+        return f"{syntax.name} := {term}"

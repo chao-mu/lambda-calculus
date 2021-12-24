@@ -1,5 +1,5 @@
 from lc.parser import parse
-from lc.ast import Abstraction, Variable, Application, Term
+from lc.ast import Abstraction, Variable, Application, Term, Assignment
 
 def test_to_tree():
     assert parse("x") == Variable("x")
@@ -18,6 +18,8 @@ def test_to_tree():
 
     assert to_str(parse("λx.y M")) == "(λx (y M))"
     assert to_str(parse("(λx.y M) x")) == "((λx (y M)) x)"
+
+    assert parse("M := x") == Assignment("M", Variable("x"))
 
 def to_str(term: Term, _prepend: str="") -> str:
     if isinstance(term, Variable):

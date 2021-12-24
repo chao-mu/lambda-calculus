@@ -3,7 +3,7 @@ from collections import deque
 
 # Internal
 from lc.tokenizer import TokenType, tokenize
-from lc.ast import Term, Variable, Abstraction, Application
+from lc.ast import Term, Variable, Abstraction, Application, Assignment
 
 class Parser:
 
@@ -26,7 +26,17 @@ class Parser:
         return self._program()
 
     def _program(self):
+        if any(tok.tt == TokenType.ASSIGN for tok in self._tokens):
+            return self._assignment()
+
         return self._term()
+
+    def _assignment(self):
+        name = self._eat(TokenType.ID, "id to assign term").content
+        self._eat(TokenType.ASSIGN, ":=")
+        term = self._term()
+
+        return Assignment(name, term)
 
     def _term(self):
         enclosed = self._next_type == TokenType.OPEN_PAREN
