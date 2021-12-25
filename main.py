@@ -6,49 +6,84 @@ import lc
 # Core
 import readline
 import importlib
+import atexit
+import os
+
 
 def main():
-    try:
-        repl(True)
-    except (EOFError, KeyboardInterrupt):
-        print("\nExiting meow!")
+    hist_path = os.path.join(
+            os.path.expanduser("~"), ".lambda_cats_history")
 
-def repl(debug: bool) -> None:
-    rt = lc.Runtime()
-    while True:
+    repl = REPL(hist_path, True)
+    atexit.register(repl.save)
+
+    repl.loop()
+
+class REPL:
+
+    def __init__(self, hist_path, verbose=False):
+        self.hist_path = hist_path
+        self.verbose = verbose
+        self.rt = lc.Runtime()
+        self.h_len = None
+
+    def loop(self):
+        try:
+            readline.read_history_file(self.hist_path)
+            self.h_len = readline.get_current_history_length()
+        except FileNotFoundError:
+            open(self.hist_path, 'wb').close()
+            self.h_len = 0
+
+        onwards = True
+        while onwards:
+            try:
+                onwards = self._one_loop()
+            except lc.ParserError as e:
+                print(e)
+            except (EOFError, KeyboardInterrupt):
+                print("\nExiting meow!")
+                onwards = False
+
+    def _one_loop(self):
         user_input = input("🐱 ")
         if not user_input:
-            continue
+            return True
 
         if user_input == "/r":
             importlib.reload(lc)
-            rt = lc.Runtime()
-            continue
+            self.rt = lc.Runtime()
+            return True
 
-        try:
-            root, reductions = rt.eval(user_input)
-        except lc.ParserError as e:
-            print(e)
-            continue
-
+        root, reductions = self.rt.eval(user_input)
         if root is None:
-            continue
+            return True
 
-        print_result(root, debug)
+        self.print_result(root)
 
         max_iter = 100
         for reduced in reductions:
-            print_result(reduced, debug)
+            self.print_result(reduced)
             max_iter -= 1
             if max_iter <= 0:
                 print("❗ Max number of reductions reached!")
                 break
 
-def print_result(result, debug):
-    print("🐁 " + lc.to_str(result))
+        return True
 
-    if debug:
-        print("🐁 " + str(result))
+    def print_result(self, result):
+        print("🐁 " + lc.to_str(result))
+
+        if self.verbose:
+            print("🐁 " + str(result))
+
+    def save(self):
+        if self.h_len is None:
+            return
+
+        new_h_len = readline.get_current_history_length()
+        readline.set_history_length(1000)
+        readline.append_history_file(new_h_len - self.h_len, self.hist_path)
 
 if __name__ == "__main__":
     main()

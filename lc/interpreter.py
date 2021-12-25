@@ -13,10 +13,19 @@ class Runtime:
 
         return root, self.reduce(root)
 
+    def reduce_times(self, term: Term, max_iter: int):
+        for term in self.reduce(term):
+            max_iter -= 1
+            if max_iter <= 0:
+                break
+
+        return term
+
     def reduce(self, term: Term):
         while True:
             last_term = term
-            term = term.reduce(self.assignments)
+            term = term.substitute(self.assignments)
+            term = term.reduce()
             if last_term == term:
                 break
             else:

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 class Syntax: pass
 
 class Term(Syntax):
-    def reduce(self, bindings=None):
+    def reduce(self):
         return self
 
     def substitute(self, bindings=None):
@@ -18,9 +18,6 @@ class Assignment(Syntax):
 class Variable(Term):
     value: str
 
-    def reduce(self, bindings=None):
-        return self.substitute(bindings)
-
     def substitute(self, bindings=None):
         if bindings is not None and self.value in bindings:
             return bindings[self.value]
@@ -31,6 +28,9 @@ class Variable(Term):
 class Abstraction(Term):
     variable: Variable
     body: Term
+
+    def reduce(self):
+        return Abstraction(self.variable.reduce(), self.body.reduce())
 
     def substitute(self, bindings=None):
         return Abstraction(self.variable, self.body.substitute(bindings))
@@ -44,17 +44,13 @@ class Application(Term):
         return Application(
                 self.left.substitute(bindings), self.right.substitute(bindings))
 
-    def reduce(self, bindings=None):
-        if bindings is None:
-            bindings = {}
-
-        left = self.left.reduce(bindings)
-        right = self.right.reduce(bindings)
+    def reduce(self):
+        left = self.left.reduce()
+        right = self.right.reduce()
 
         if isinstance(left, Abstraction):
             var = left.variable.value
-            bindings[var] = right
-
+            bindings = {var: right}
             return left.body.substitute(bindings)
 
         return Application(left, right)
