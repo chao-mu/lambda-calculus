@@ -3,12 +3,12 @@ from lc.parser import parse
 
 class Runtime:
     def __init__(self):
-        self.assignments = {}
+        self.aliases = {}
 
     def eval(self, s: str):
         root = parse(s)
         if isinstance(root, Assignment):
-            self.assignments[root.name] = root.term
+            self.aliases[root.name] = root.term
             return None, []
 
         return root, self.reduce(root)
@@ -24,7 +24,7 @@ class Runtime:
     def reduce(self, term: Term):
         while True:
             last_term = term
-            term = term.substitute(self.assignments)
+            term = term.substitute(self.aliases)
             term = term.reduce()
             if last_term == term:
                 break

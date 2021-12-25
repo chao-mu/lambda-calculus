@@ -14,7 +14,7 @@ def main():
     hist_path = os.path.join(
             os.path.expanduser("~"), ".lambda_cats_history")
 
-    repl = REPL(hist_path, True)
+    repl = REPL(hist_path, False)
     atexit.register(repl.save)
 
     repl.loop()
@@ -59,20 +59,28 @@ class REPL:
         if root is None:
             return True
 
-        self.print_result(root)
+        history = [root]
+        if self.verbose:
+            self.print_result(root)
 
         max_iter = 100
+        reduced = None
         for reduced in reductions:
-            self.print_result(reduced)
+            if self.verbose:
+                self.print_result(reduced)
             max_iter -= 1
             if max_iter <= 0:
                 print("❗ Max number of reductions reached!")
                 break
 
+        if not self.verbose and reduced is not None:
+            self.print_result(reduced)
+
         return True
 
     def print_result(self, result):
-        print("🐁 " + lc.to_str(result))
+        aliases = {term: name for name, term in self.rt.aliases.items()}
+        print("🐁 " + result.friendly(aliases))
 
         if self.verbose:
             print("🐁 " + str(result))

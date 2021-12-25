@@ -9,12 +9,20 @@ class Term(Syntax):
     def substitute(self, bindings=None):
         return self
 
-@dataclass
+@dataclass(frozen=True)
 class Assignment(Syntax):
     name: str
     term: Term
 
-@dataclass
+    def friendly(self, aliases):
+        if self in aliases:
+            return aliases[self]
+
+        term = self.term.friendly(aliases)
+
+        return f"{name} := {term}"
+
+@dataclass(frozen=True)
 class Variable(Term):
     value: str
 
@@ -24,7 +32,13 @@ class Variable(Term):
 
         return self
 
-@dataclass
+    def friendly(self, aliases):
+        if self in aliases:
+            return aliases[self]
+
+        return self.value
+
+@dataclass(frozen=True)
 class Abstraction(Term):
     variable: Variable
     body: Term
@@ -35,7 +49,15 @@ class Abstraction(Term):
     def substitute(self, bindings=None):
         return Abstraction(self.variable, self.body.substitute(bindings))
 
-@dataclass
+    def friendly(self, aliases):
+        if self in aliases:
+            return aliases[self]
+
+        body = self.body.friendly(aliases)
+
+        return f"(λ{self.variable.value}.{body})"
+
+@dataclass(frozen=True)
 class Application(Term):
     left: Term
     right: Term
@@ -55,19 +77,11 @@ class Application(Term):
 
         return Application(left, right)
 
-def to_str(syntax: Syntax, _prepend: str="") -> str:
-    if isinstance(syntax, Variable):
-        return syntax.value
+    def friendly(self, aliases):
+        if self in aliases:
+            return aliases[self]
 
-    if isinstance(syntax, Abstraction):
-        body = to_str(syntax.body)
-        return f"(λ{syntax.variable.value}.{body})"
+        left = self.left.friendly(aliases)
+        right = self.right.friendly(aliases)
 
-    if isinstance(syntax, Application):
-        left = to_str(syntax.left)
-        right = to_str(syntax.right)
         return f"({left} {right})"
-
-    if isinstance(syntax, Assignment):
-        term = to_str(syntax.term)
-        return f"{syntax.name} := {term}"
