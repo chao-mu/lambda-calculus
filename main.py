@@ -9,7 +9,6 @@ import importlib
 import atexit
 import os
 
-
 def main():
     hist_path = os.path.join(
             os.path.expanduser("~"), ".lambda_cats_history")
